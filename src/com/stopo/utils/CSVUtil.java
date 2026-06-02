@@ -55,5 +55,6 @@ public class CSVUtil {
         } catch (IOException e) {
             System.out.println("Erro ao ler o arquivo CSV: " + e.getMessage());
         }
+        return lines;
     }
 }
