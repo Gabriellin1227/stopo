@@ -30,6 +30,12 @@ public class ProductView extends JFrame {
         setLocationRelativeTo(null);
     }
 
+    public void clearFields() {
+        txtName.setText("");
+        txtPrice.setText("");
+        txtQuantity.setText("");
+    }
+
     public String getProductName() {return txtName.getText();}
     public String getProductPrice() {return txtPrice.getText();}
     public String getProductQuantity() {return txtQuantity.getText();}
@@ -39,4 +45,5 @@ public class ProductView extends JFrame {
 
     public void addSaveListener(ActionListener actionListener) {btnSave.addActionListener(actionListener);}
     public void addCancelListener(ActionListener actionListener) {btnCancel.addActionListener(actionListener);}
+
 }
