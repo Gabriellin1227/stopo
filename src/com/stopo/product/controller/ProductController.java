@@ -19,16 +19,23 @@ public class ProductController {
     }
 
     private void cancelProduct() {
+        view.clearFields();
+        view.showMessage("Cadastro de Produto cancelado");
     }
 
     private void saveProduct() {
         try {
             String name = view.getProductName();
+            String description = view.getProductDescription();
             double price = Double.parseDouble(view.getProductPrice());
             int quantity = Integer.parseInt(view.getProductQuantity());
+            if(name.isEmpty() || price <= 0 || quantity <= 0) {
+                view.showMessage("Erro: o nome do produto não pode estar vazio");
+                return;
+            }
 
             int nextId = service.getNextId();
-            Product p = new Product(nextId, name, price, quantity);
+            Product p = new Product(nextId, name, description, price, quantity);
 
             service.addProduct(p);
 
@@ -37,25 +44,6 @@ public class ProductController {
             refreshList();
         } catch(NumberFormatException e) {
             view.showMessage("Erro ao salvar!");
-        }
-    }
-
-    private void sellProduct() {
-        Product[] products = service.listProducts();
-        if (products.length == 0) {
-            view.showMessage("Nenhum produto encontrado!");
-            return;
-        }
-        Product first = products[0];
-        if (first.getQuantity() > 0) {
-            first.setQuantity(first.getQuantity() - 1);
-
-            service.saveProduct(products);
-
-            view.showMessage("Venda realizada!");
-            refreshList();
-        } else  {
-            view.showMessage("Nenhum produto encontrado!");
         }
     }
 

@@ -8,7 +8,7 @@ public class CSVUtil {
         File file = new File(nArq1);
         if(!file.exists()){
             try(PrintWriter pw = new PrintWriter(new FileWriter(file))){
-                pw.write(csvHead);
+                pw.println(csvHead);
             } catch(IOException e){
                 System.out.println("Erro ao criar o arquivo CSV: " + e.getMessage());
             }
@@ -17,13 +17,14 @@ public class CSVUtil {
 
     public static void saveCSV(String nArq1, String csvHead, String[] fields) {
         try(PrintWriter pw = new PrintWriter(new FileWriter(nArq1))) {
-            pw.print(csvHead);
-            for(String line:fields){
+            pw.println(csvHead);
+
+            for(String line : fields){
                 if(line != null){
-                    pw.print(line);
+                    pw.println(line);
                 }
             }
-        }catch(IOException e){
+        } catch(IOException e){
             System.out.println("Erro ao salvar o arquivo CSV: " + e.getMessage());
         }
     }

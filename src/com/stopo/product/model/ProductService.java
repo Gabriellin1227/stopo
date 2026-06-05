@@ -3,7 +3,7 @@ package com.stopo.product.model;
 import com.stopo.utils.CSVUtil;
 
 public class ProductService {
-    private final String ARQ = "produtos.csv";
+    private final String ARQ = "src/com/stopo/resources/produtos.csv";
     private final String HEAD = "id;name;description;price;quantity";
 
     public ProductService() {

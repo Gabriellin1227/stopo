@@ -7,7 +7,7 @@ public class Product {
     private double price;
     private int quantity;
 
-    public Product(int id, String name, double price, int quantity) {
+    public Product(int id, String name, String description, double price, int quantity) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -26,7 +26,8 @@ public class Product {
         String description = fields[2];
         double price = Double.parseDouble(fields[3]);
         int quantity = Integer.parseInt(fields[4]);
-        return new Product(id, name, price, quantity);
+
+        return new Product(id, name, description, price, quantity);
     }
 
     public int getId() {return id;}
