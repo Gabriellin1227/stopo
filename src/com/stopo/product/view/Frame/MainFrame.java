@@ -1,7 +1,12 @@
-package com.stopo.product.view;
+package com.stopo.product.view.Frame;
+
+import com.stopo.product.view.*;
+import com.stopo.product.view.panels.BalcaoPanel;
+import com.stopo.product.view.panels.HomePanel;
+import com.stopo.product.view.panels.ProdutosPanel;
+import com.stopo.product.view.panels.VendasPanel;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.util.Objects;
 
@@ -18,8 +23,8 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setFocusable(true);
 
-        Header header = new Header();
-        add(header, BorderLayout.NORTH);
+        FrameHeader frameHeader = new FrameHeader();
+        add(frameHeader, BorderLayout.NORTH);
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
@@ -28,7 +33,7 @@ public class MainFrame extends JFrame {
         contentPanel.add(new BalcaoPanel(this), Screens.BALCAO.toString());
         contentPanel.add(new ProdutosPanel(this), Screens.PRODUTOS.toString());
         contentPanel.add(new VendasPanel(this), Screens.VENDAS.toString());
-        contentPanel.setBorder(BorderFactory.createMatteBorder(20, 20, 20, 20, Color.BLACK));
+        contentPanel.setBorder(BorderFactory.createMatteBorder(20, 20, 20, 20, AppColors.BACKGROUND));
 
         add(contentPanel, BorderLayout.CENTER);
 

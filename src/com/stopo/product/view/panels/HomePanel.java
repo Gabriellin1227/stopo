@@ -1,8 +1,14 @@
-package com.stopo.product.view;
+package com.stopo.product.view.panels;
+
+import com.stopo.product.view.AppColors;
+import com.stopo.product.view.Frame.MainFrame;
+import com.stopo.product.view.Screens;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class HomePanel extends JPanel {
 
@@ -10,9 +16,9 @@ public class HomePanel extends JPanel {
         setLayout(new BorderLayout(20, 20));
 
         // Botões principais
-        JButton btnBalcao = criarBotao(Screens.BALCAO + "\n (B)");
-        JButton btnProdutos = criarBotao(Screens.PRODUTOS + "\n (P)");
-        JButton btnVendas = criarBotao(Screens.VENDAS + "\n (V)");
+        JButton btnBalcao = criarBotao(Screens.BALCAO + "\n (B)", AppColors.BLUE, 32);
+        JButton btnProdutos = criarBotao(Screens.PRODUTOS + "\n (P)", AppColors.GREEN, 32);
+        JButton btnVendas = criarBotao(Screens.VENDAS + "\n (V)", AppColors.YELLOW, 32);
 
         btnBalcao.addActionListener(e ->
                 frame.showScreen(Screens.BALCAO));
@@ -24,13 +30,13 @@ public class HomePanel extends JPanel {
                 frame.showScreen(Screens.VENDAS));
 
 
-        // Layout dos cards
         JPanel content = new JPanel(new GridLayout(1, 2, 20, 20));
-
+        content.setBackground(AppColors.BACKGROUND);
         JPanel esquerda = new JPanel(new BorderLayout());
         esquerda.add(btnBalcao, BorderLayout.CENTER);
 
         JPanel direita = new JPanel(new GridLayout(2, 1, 20, 20));
+        direita.setBackground(AppColors.BACKGROUND);
 
         direita.add(btnProdutos);
         direita.add(btnVendas);
@@ -69,14 +75,31 @@ public class HomePanel extends JPanel {
         });
     }
 
-    private JButton criarBotao(String texto) {
-
+    private JButton criarBotao(String texto, Color cor, int tamanho) {
         JButton btn = new JButton(texto);
-
-        btn.setFont(new Font("Arial", Font.BOLD, 22));
+        btn.setBackground(cor);
+        btn.setForeground(AppColors.WHITE_TEXT);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho));
         btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createLineBorder(cor, 5));
+
+        btn.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                btn.setBackground(AppColors.BACKGROUND);
+                btn.setForeground(cor);
+                btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho + 10));
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                btn.setBackground(cor);
+                btn.setForeground(AppColors.WHITE_TEXT);
+                btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho));
+            }
+        });
 
         return btn;
     }
-
 }

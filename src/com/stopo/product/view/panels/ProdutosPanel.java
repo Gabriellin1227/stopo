@@ -1,7 +1,9 @@
-package com.stopo.product.view;
+package com.stopo.product.view.panels;
+
+import com.stopo.product.view.Frame.MainFrame;
+import com.stopo.product.view.Screens;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class ProdutosPanel extends JPanel {
 

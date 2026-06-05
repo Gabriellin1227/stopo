@@ -1,6 +1,6 @@
 package com.stopo.app;
 import javax.swing.SwingUtilities;
-import com.stopo.product.view.MainFrame;
+import com.stopo.product.view.Frame.MainFrame;
 
 public class Main {
     public static void main(String[] args) {
