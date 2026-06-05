@@ -26,6 +26,7 @@ public class Product {
         String description = fields[2];
         double price = Double.parseDouble(fields[3]);
         int quantity = Integer.parseInt(fields[4]);
+
         return new Product(id, name, description, price, quantity);
     }
 
