@@ -1,4 +1,4 @@
-package com.stopo.product.view;
+package com.stopo.product.view.uiconstants;
 
 import java.awt.Color;
 

@@ -1,5 +1,5 @@
 package com.stopo.product.view.Frame;
-import com.stopo.product.view.AppColors;
+import com.stopo.product.view.uiconstants.AppColors;
 
 import javax.swing.*;
 import java.awt.*;

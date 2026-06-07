@@ -1,105 +1,82 @@
 package com.stopo.product.view.panels;
 
-import com.stopo.product.view.AppColors;
+import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.Frame.MainFrame;
-import com.stopo.product.view.Screens;
+import com.stopo.product.view.uiconstants.Screens;
+import com.stopo.product.view.uiutils.KeyBindingsFactory;
+import com.stopo.product.view.uiutils.StopoButtonFactory;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+
 
 public class HomePanel extends JPanel {
 
     public HomePanel(MainFrame frame) {
         setLayout(new BorderLayout(20, 20));
+        
+        JButton btnBalcao = StopoButtonFactory.createButton(
+                Screens.BALCAO + " (B)",
+                AppColors.BLUE,
+                32,
+                _ -> frame.showScreen(Screens.BALCAO)
+        );
 
-        // Botões principais
-        JButton btnBalcao = criarBotao(Screens.BALCAO + "\n (B)", AppColors.BLUE, 32);
-        JButton btnProdutos = criarBotao(Screens.PRODUTOS + "\n (P)", AppColors.GREEN, 32);
-        JButton btnVendas = criarBotao(Screens.VENDAS + "\n (V)", AppColors.YELLOW, 32);
+        JButton btnProdutos = StopoButtonFactory.createButton(
+                Screens.PRODUTOS + " (P)",
+                AppColors.GREEN,
+                32,
+                _ -> frame.showScreen(Screens.PRODUTOS));
 
-        btnBalcao.addActionListener(e ->
-                frame.showScreen(Screens.BALCAO));
+        JButton btnVendas = StopoButtonFactory.createButton(
+                Screens.VENDAS + " (V)",
+                AppColors.YELLOW,
+                32,
+                _ -> frame.showScreen(Screens.VENDAS));
 
-        btnProdutos.addActionListener(e ->
-                frame.showScreen(Screens.PRODUTOS));
-
-        btnVendas.addActionListener(e ->
-                frame.showScreen(Screens.VENDAS));
-
-
-        JPanel content = new JPanel(new GridLayout(1, 2, 20, 20));
+        JPanel content = new JPanel(new GridBagLayout());
         content.setBackground(AppColors.BACKGROUND);
-        JPanel esquerda = new JPanel(new BorderLayout());
-        esquerda.add(btnBalcao, BorderLayout.CENTER);
 
-        JPanel direita = new JPanel(new GridLayout(2, 1, 20, 20));
-        direita.setBackground(AppColors.BACKGROUND);
+        GridBagConstraints gBagConfig = new GridBagConstraints();
+        gBagConfig.insets = new Insets(10, 10, 10, 10);
+        gBagConfig.fill = GridBagConstraints.BOTH;
+        gBagConfig.weightx = 1;
+        gBagConfig.weighty = 1;
 
-        direita.add(btnProdutos);
-        direita.add(btnVendas);
+        gBagConfig.gridx = 0;
+        gBagConfig.gridy = 0;
+        gBagConfig.gridheight = 2;
+        content.add(btnBalcao, gBagConfig);
 
-        content.add(esquerda);
-        content.add(direita);
+        gBagConfig.gridx = 1;
+        gBagConfig.gridy = 0;
+        gBagConfig.gridheight = 1;
+        content.add(btnProdutos, gBagConfig);
+
+        gBagConfig.gridy = 1;
+        content.add(btnVendas, gBagConfig);
 
         add(content, BorderLayout.CENTER);
 
-        InputMap inputMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        ActionMap actionMap = this.getActionMap();
+        KeyBindingsFactory.bind(
+                this,
+                "B",
+                "changeToBalcao",
+                () -> frame.showScreen(Screens.BALCAO)
+        );
 
-        inputMap.put(KeyStroke.getKeyStroke("B"), "bAction");
-        inputMap.put(KeyStroke.getKeyStroke("P"), "pAction");
-        inputMap.put(KeyStroke.getKeyStroke("V"), "vAction");
+        KeyBindingsFactory.bind(
+                this,
+                "P",
+                "changeToProdutos",
+                () -> frame.showScreen(Screens.PRODUTOS)
+        );
 
-        actionMap.put("bAction", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.showScreen(Screens.BALCAO);
-            }
-        });
-
-        actionMap.put("pAction", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.showScreen(Screens.PRODUTOS);
-            }
-        });
-
-        actionMap.put("vAction", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                frame.showScreen(Screens.VENDAS);
-            }
-        });
-    }
-
-    private JButton criarBotao(String texto, Color cor, int tamanho) {
-        JButton btn = new JButton(texto);
-        btn.setBackground(cor);
-        btn.setForeground(AppColors.WHITE_TEXT);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho));
-        btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createLineBorder(cor, 5));
-
-        btn.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                btn.setBackground(AppColors.BACKGROUND);
-                btn.setForeground(cor);
-                btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho + 10));
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                btn.setBackground(cor);
-                btn.setForeground(AppColors.WHITE_TEXT);
-                btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, tamanho));
-            }
-        });
-
-        return btn;
+        KeyBindingsFactory.bind(
+                this,
+                "V",
+                "changeToVendas",
+                () -> frame.showScreen(Screens.VENDAS)
+        );
     }
 }

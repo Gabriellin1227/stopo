@@ -1,17 +1,22 @@
 package com.stopo.product.view.panels;
 
+import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.Frame.MainFrame;
-import com.stopo.product.view.Screens;
+import com.stopo.product.view.uiComponents.produtos.ProdutosForm;
 
 import javax.swing.*;
+import java.awt.*;
 
 public class ProdutosPanel extends JPanel {
 
     public ProdutosPanel(MainFrame frame) {
-        JButton btnVoltar = new JButton("Home produtos");
 
-        btnVoltar.addActionListener(e ->
-                frame.showScreen(Screens.HOME));
-        add(btnVoltar);
+        ProdutosForm form = new ProdutosForm();
+
+        setBackground(AppColors.BACKGROUND);
+        setLayout(new GridLayout(2, 1));
+        add(form);
+
+
     }
 }

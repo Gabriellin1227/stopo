@@ -1,6 +1,7 @@
 package com.stopo.product.view.Frame;
 
-import com.stopo.product.view.*;
+import com.stopo.product.view.uiconstants.AppColors;
+import com.stopo.product.view.uiconstants.Screens;
 import com.stopo.product.view.panels.BalcaoPanel;
 import com.stopo.product.view.panels.HomePanel;
 import com.stopo.product.view.panels.ProdutosPanel;
@@ -10,7 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Objects;
 
-public class MainFrame extends JFrame {
+public class MainFrame extends JFrame{
 
     private final CardLayout cardLayout;
     private final JPanel contentPanel;

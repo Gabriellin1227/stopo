@@ -1,7 +1,7 @@
 package com.stopo.product.view.panels;
 
 import com.stopo.product.view.Frame.MainFrame;
-import com.stopo.product.view.Screens;
+import com.stopo.product.view.uiconstants.Screens;
 
 import javax.swing.*;
 
