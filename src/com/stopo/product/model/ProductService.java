@@ -43,4 +43,16 @@ public class ProductService {
         if(now.length == 0 ) return 1;
         return now[now.length - 1].getId() + 1; //pegar o ultimo +1
     }
+
+    public void atualizarProduto(Product editProduct) {
+        Product[] products = listProducts();
+        for (int i = 0; i < products.length; i++) {
+            if (products[i] != null && products[i].getId() == editProduct.getId()) {
+                // Substitui o produto antigo pelo editado
+                products[i] = editProduct;
+                break;
+            }
+        }
+        saveProduct(products);
+    }
 }
