@@ -17,6 +17,12 @@ public class MainFrame extends JFrame{
     private final JPanel contentPanel;
 
     public MainFrame() {
+        UIManager.put("Label.font", new Font(Font.SANS_SERIF, Font.BOLD, 12));
+        UIManager.put("Panel.background", AppColors.BACKGROUND);
+        UIManager.put("Button.background", AppColors.BACKGROUND);
+        UIManager.put("Label.background", AppColors.BACKGROUND);
+        UIManager.put("TextField.background", AppColors.BACKGROUND);
+
         setTitle("Stopo - PDV");
         setSize(1200, 800);
         setIconImage(new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/mainicon.jpg"))).getImage());
@@ -24,24 +30,27 @@ public class MainFrame extends JFrame{
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setFocusable(true);
 
-        FrameHeader frameHeader = new FrameHeader();
+        FrameHeader frameHeader = new FrameHeader(this);
         add(frameHeader, BorderLayout.NORTH);
 
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
 
         contentPanel.add(new HomePanel(this), Screens.HOME.toString());
-        contentPanel.add(new BalcaoPanel(this), Screens.BALCAO.toString());
-        contentPanel.add(new ProdutosPanel(this), Screens.PRODUTOS.toString());
-        contentPanel.add(new VendasPanel(this), Screens.VENDAS.toString());
+        contentPanel.add(new BalcaoPanel(), Screens.BALCAO.toString());
+        contentPanel.add(new ProdutosPanel(), Screens.PRODUTOS.toString());
+        contentPanel.add(new VendasPanel(), Screens.VENDAS.toString());
         contentPanel.setBorder(BorderFactory.createMatteBorder(20, 20, 20, 20, AppColors.BACKGROUND));
 
         add(contentPanel, BorderLayout.CENTER);
 
-        showScreen(Screens.HOME);
+        FrameFooter frameFooter = new FrameFooter(this);
+        add(frameFooter, BorderLayout.SOUTH);
+        changeScreen(Screens.HOME);
     }
 
-    public void showScreen(Screens screen) {
+    public void changeScreen(Screens screen) {
         cardLayout.show(contentPanel, screen.toString());
     }
+
 }

@@ -9,18 +9,16 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public final class StopoButtonFactory {
-    private StopoButtonFactory(){}
 
-    public static JButton createButton(
-            String texto,
-            Color cor,
-            int fontSize,
-            ActionListener actionListener){
+    private StopoButtonFactory() {}
+
+    public static JButton createButton(String texto, Color cor, int fontSize) {
         JButton btn = new JButton(texto);
+
         btn.setBackground(cor);
         btn.setForeground(AppColors.WHITE_TEXT);
-        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setFont(new Font(Font.SANS_SERIF, Font.BOLD, fontSize));
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.setFocusPainted(false);
         btn.setBorder(BorderFactory.createLineBorder(cor, 3));
 
@@ -38,9 +36,12 @@ public final class StopoButtonFactory {
             }
         });
 
-        btn.addActionListener(actionListener);
+        return btn;
+    }
 
+    public static JButton createButton(String texto, Color cor, int fontSize, ActionListener action) {
+        JButton btn = createButton(texto, cor, fontSize);
+        btn.addActionListener(action);
         return btn;
     }
 }
-

@@ -10,32 +10,32 @@ import javax.swing.*;
 import java.awt.*;
 
 
-public class HomePanel extends JPanel {
-
+public class HomePanel extends JPanel { ;
     public HomePanel(MainFrame frame) {
-        setLayout(new BorderLayout(20, 20));
-        
+        setLayout(new GridBagLayout());
+
+        //Instânciando buttons
+
         JButton btnBalcao = StopoButtonFactory.createButton(
                 Screens.BALCAO + " (B)",
                 AppColors.BLUE,
                 32,
-                _ -> frame.showScreen(Screens.BALCAO)
-        );
+                _ -> frame.changeScreen(Screens.BALCAO));
 
         JButton btnProdutos = StopoButtonFactory.createButton(
                 Screens.PRODUTOS + " (P)",
                 AppColors.GREEN,
                 32,
-                _ -> frame.showScreen(Screens.PRODUTOS));
+                _ -> frame.changeScreen(Screens.PRODUTOS));
 
         JButton btnVendas = StopoButtonFactory.createButton(
                 Screens.VENDAS + " (V)",
                 AppColors.YELLOW,
                 32,
-                _ -> frame.showScreen(Screens.VENDAS));
+                _ -> frame.changeScreen(Screens.VENDAS));
 
-        JPanel content = new JPanel(new GridBagLayout());
-        content.setBackground(AppColors.BACKGROUND);
+
+        // Desenhando os buttons
 
         GridBagConstraints gBagConfig = new GridBagConstraints();
         gBagConfig.insets = new Insets(10, 10, 10, 10);
@@ -46,37 +46,37 @@ public class HomePanel extends JPanel {
         gBagConfig.gridx = 0;
         gBagConfig.gridy = 0;
         gBagConfig.gridheight = 2;
-        content.add(btnBalcao, gBagConfig);
+        add(btnBalcao, gBagConfig);
 
         gBagConfig.gridx = 1;
         gBagConfig.gridy = 0;
         gBagConfig.gridheight = 1;
-        content.add(btnProdutos, gBagConfig);
+        add(btnProdutos, gBagConfig);
 
         gBagConfig.gridy = 1;
-        content.add(btnVendas, gBagConfig);
+        add(btnVendas, gBagConfig);
 
-        add(content, BorderLayout.CENTER);
+        // Adicionando Keybinds desse panel
 
         KeyBindingsFactory.bind(
                 this,
                 "B",
                 "changeToBalcao",
-                () -> frame.showScreen(Screens.BALCAO)
+                () -> frame.changeScreen(Screens.BALCAO)
         );
 
         KeyBindingsFactory.bind(
                 this,
                 "P",
                 "changeToProdutos",
-                () -> frame.showScreen(Screens.PRODUTOS)
+                () -> frame.changeScreen(Screens.PRODUTOS)
         );
 
         KeyBindingsFactory.bind(
                 this,
                 "V",
                 "changeToVendas",
-                () -> frame.showScreen(Screens.VENDAS)
+                () -> frame.changeScreen(Screens.VENDAS)
         );
     }
 }
