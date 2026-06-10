@@ -45,6 +45,7 @@ public class ProdutosPanel extends JPanel {
         JPanel eastPanel = new JPanel(new BorderLayout());
         eastPanel.add(form, BorderLayout.NORTH);
         eastPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        eastPanel.setPreferredSize(new Dimension(250, 0));
         return eastPanel;
     }
 
