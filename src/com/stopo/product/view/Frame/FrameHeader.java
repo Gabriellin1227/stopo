@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class FrameHeader extends JPanel {
-    public FrameHeader(MainFrame frame){
+    public FrameHeader(){
 
         setBorder(BorderFactory.createEmptyBorder(10, 20 ,10, 20));
         setBackground(AppColors.PRIMARY);

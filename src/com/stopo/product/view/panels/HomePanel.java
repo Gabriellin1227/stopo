@@ -3,32 +3,29 @@ package com.stopo.product.view.panels;
 import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.Frame.MainFrame;
 import com.stopo.product.view.uiconstants.Screens;
-import com.stopo.product.view.uiutils.KeyBindingsFactory;
-import com.stopo.product.view.uiutils.StopoButtonFactory;
+import com.stopo.product.view.uiutils.StopoUiFactory;
 
 import javax.swing.*;
 import java.awt.*;
 
 
-public class HomePanel extends JPanel { ;
+public class HomePanel extends JPanel {
     public HomePanel(MainFrame frame) {
         setLayout(new GridBagLayout());
 
-        //Instânciando buttons
-
-        JButton btnBalcao = StopoButtonFactory.createButton(
+        JButton btnBalcao = StopoUiFactory.createButton(
                 Screens.BALCAO + " (B)",
                 AppColors.BLUE,
                 32,
                 _ -> frame.changeScreen(Screens.BALCAO));
 
-        JButton btnProdutos = StopoButtonFactory.createButton(
+        JButton btnProdutos = StopoUiFactory.createButton(
                 Screens.PRODUTOS + " (P)",
                 AppColors.GREEN,
                 32,
                 _ -> frame.changeScreen(Screens.PRODUTOS));
 
-        JButton btnVendas = StopoButtonFactory.createButton(
+        JButton btnVendas = StopoUiFactory.createButton(
                 Screens.VENDAS + " (V)",
                 AppColors.YELLOW,
                 32,
@@ -56,23 +53,21 @@ public class HomePanel extends JPanel { ;
         gBagConfig.gridy = 1;
         add(btnVendas, gBagConfig);
 
-        // Adicionando Keybinds desse panel
-
-        KeyBindingsFactory.bind(
+        StopoUiFactory.bindKey(
                 this,
                 "B",
                 "changeToBalcao",
                 () -> frame.changeScreen(Screens.BALCAO)
         );
 
-        KeyBindingsFactory.bind(
+        StopoUiFactory.bindKey(
                 this,
                 "P",
                 "changeToProdutos",
                 () -> frame.changeScreen(Screens.PRODUTOS)
         );
 
-        KeyBindingsFactory.bind(
+        StopoUiFactory.bindKey(
                 this,
                 "V",
                 "changeToVendas",
