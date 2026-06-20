@@ -8,7 +8,7 @@ public class BarCodeGen {
 
     // padrao começo e fim
     private static final String Start_PPT = "0000";
-    private static final String End_PPT = "100";
+    private static final String End_PPT = "1000";
 
     static {
         DEFAULT_ITF.put('0', "00110");

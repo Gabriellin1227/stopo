@@ -6,17 +6,19 @@ public class Product {
     private String description;
     private double price;
     private int quantity;
+    private String barcode;
 
-    public Product(int id, String name, String description, double price, int quantity) {
+    public Product(int id, String name, String description, double price, int quantity, String barcode) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.quantity = quantity;
+        this.barcode = barcode;
     }
 
     public String toCsv() {
-        return id + ";"  + name + ";" + description + ";" + price + ";" + quantity;
+        return id + ";"  + name + ";" + description + ";" + price + ";" + quantity + ";" + barcode;
     }
 
     public static Product fromCsv(String csvLine) {
@@ -26,8 +28,9 @@ public class Product {
         String description = fields[2];
         double price = Double.parseDouble(fields[3]);
         int quantity = Integer.parseInt(fields[4]);
+        String barcode = fields[5];
 
-        return new Product(id, name, description, price, quantity);
+        return new Product(id, name, description, price, quantity, barcode);
     }
 
     public int getId() {return id;}
@@ -40,4 +43,5 @@ public class Product {
     public void setPrice(double price) {this.price = price;}
     public int getQuantity() {return quantity;}
     public void setQuantity(int quantity) {this.quantity = quantity;}
+    public String getBarcode() {return barcode;}
 }
