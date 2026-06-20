@@ -59,5 +59,6 @@ public class ProductController {
         }
         view.updateList(sb.toString());
     }
+//    Private List[] databse
 }
 
