@@ -29,15 +29,13 @@ public class ProductController {
             String description = view.getProductDescription();
             double price = Double.parseDouble(view.getProductPrice());
             int quantity = Integer.parseInt(view.getProductQuantity());
+
             if(name.isEmpty() || price <= 0 || quantity <= 0) {
                 view.showMessage("Erro: o nome do produto não pode estar vazio");
                 return;
             }
 
-            int nextId = service.getNextId();
-            Product p = new Product(nextId, name, description, price, quantity);
-
-            service.addProduct(p);
+            service.addProduct(name, description, price, quantity);
 
             view.showMessage("Produto Salvo com sucesso!");
             view.clearFields();

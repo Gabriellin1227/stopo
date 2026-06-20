@@ -11,6 +11,7 @@ public class ProductView extends JFrame {
     private JTextField txtPrice = new JTextField(7);
     private JTextField txtQuantity = new JTextField(3);
     private JTextField txtDescription = new JTextField(100);
+    private JTextField txtBarCode = new JTextField(10);
     private JTextArea txtAreaList = new JTextArea(10, 30);
 
     //buttons
@@ -28,6 +29,7 @@ public class ProductView extends JFrame {
         add(new JLabel("Descrição")); add(txtDescription);
         add(new JLabel("Preco:")); add(txtPrice);
         add(new JLabel("Quantidade:")); add(txtQuantity);
+        add(new JLabel("Barcode:")); add(txtBarCode);
         add(btnSave);
         add(btnCancel);
 
@@ -48,6 +50,7 @@ public class ProductView extends JFrame {
     public String getProductPrice() {return txtPrice.getText();}
     public String getProductQuantity() {return txtQuantity.getText();}
     public String getProductDescription() {return txtDescription.getText();}
+    public String getProductBarCode() {return txtBarCode.getText();}
 
     public void updateList(String text) {txtAreaList.setText(text);}
     public void showMessage(String msg) {JOptionPane.showMessageDialog(this, msg);}
