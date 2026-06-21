@@ -71,7 +71,7 @@ public class VendasPanel extends JPanel {
         for(Sell s:now){
             if(s != null){
                 tableModel.addRow(new Object[]{
-                        s.getIdProduct(),
+                        s.getIdSell(),
                         s.getDate(),
                         s.getProduct().getName(),
                         s.getSellQuantity(),

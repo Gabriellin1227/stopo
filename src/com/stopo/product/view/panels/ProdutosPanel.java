@@ -61,7 +61,24 @@ public class ProdutosPanel extends JPanel {
         add(StopoUiFactory.createPanelHeader("Produtos", "Crud de produtos"), BorderLayout.NORTH);
         add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
         add(buildEastPanel(), BorderLayout.EAST);
+        /*
+        * atulizando o componente e buscando no csv toda vez q abre
+        * tava com problema quando estornava n att o estoque
+        */
+        this.addAncestorListener(new javax.swing.event.AncestorListener() {
+            @Override
+            public void ancestorAdded(javax.swing.event.AncestorEvent event) {
+                adicionarProdutosTable();
+            }
 
+            @Override
+            public void ancestorRemoved(javax.swing.event.AncestorEvent event) {
+            }
+
+            @Override
+            public void ancestorMoved(javax.swing.event.AncestorEvent event) {
+            }
+        });
         bindKeys();
     }
 

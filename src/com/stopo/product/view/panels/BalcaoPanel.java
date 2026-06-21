@@ -118,6 +118,7 @@ public class BalcaoPanel extends JPanel {
 
         if(foundProduct == null) {
             JOptionPane.showMessageDialog(this, "Produto não encontrado para o código: " + busca);
+            return;
         }
         int quantidade = (Integer) spnQuantidade.getValue();
         if(quantidade > foundProduct.getQuantity()) {
@@ -177,7 +178,6 @@ public class BalcaoPanel extends JPanel {
                 }
             }
             if (productSelled != null) {
-                // Agora sim, 4 parâmetros fechando certinho com o Service!
                 sellService.addSell(0, dateSell, productSelled, qntSelled, "Concluída");
             }
         }
@@ -187,7 +187,7 @@ public class BalcaoPanel extends JPanel {
     }
 
     private void onCancelar() {
-        int confirm = JOptionPane.YES_NO_OPTION;
+        int confirm = JOptionPane.YES_OPTION;
         if (tableModel.getRowCount() > 0) {
             confirm = JOptionPane.showConfirmDialog(this, "Deseja limpar o carrinho atual?", "Confirmar", JOptionPane.YES_NO_OPTION);
         }
