@@ -4,8 +4,11 @@ import java.awt.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import com.stopo.product.model.Product;
 import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.uiutils.StopoUiFactory;
+import com.stopo.sell.model.Sell;
+import com.stopo.sell.model.SellService;
 
 public class VendasPanel extends JPanel {
 
@@ -18,10 +21,12 @@ public class VendasPanel extends JPanel {
 
     private static int sequencialVendasId = 1;
 
+    private final SellService sellService = new SellService();
+
     public VendasPanel() {
         setLayout(new BorderLayout(10, 10));
 
-        String[] colunas = {"ID Venda", "Data da Venda", "Qtd. Itens", "Valor Total", "Status"};
+        String[] colunas = {"ID Venda", "Data da Venda", "Produto", "Qtd. Itens", "Valor Total", "Status"};
         tableModel = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -38,6 +43,8 @@ public class VendasPanel extends JPanel {
         add(buildEastPanel(), BorderLayout.EAST);
 
         bindKeys();
+
+        onAtualizar(); // adicionei pra att ao abrir
     }
 
     private JPanel buildEastPanel() {
@@ -60,8 +67,19 @@ public class VendasPanel extends JPanel {
 
     private void onAtualizar() {
         tableModel.setRowCount(0);
-        tableModel.addRow(new Object[]{String.format("%04d", sequencialVendasId++), "18/06/2026 14:30", "3", "R$ 150,00", "Concluída"});
-        tableModel.addRow(new Object[]{String.format("%04d", sequencialVendasId++), "18/06/2026 15:45", "1", "R$ 49,90", "Concluída"});
+        Sell[] now = sellService.listSell();
+        for(Sell s:now){
+            if(s != null){
+                tableModel.addRow(new Object[]{
+                        s.getIdProduct(),
+                        s.getDate(),
+                        s.getProduct().getName(),
+                        s.getSellQuantity(),
+                        String.format("R$ %.2f", (s.getProduct().getPrice() * s.getSellQuantity())),
+                        s.getStatus()
+                });
+            }
+        }
     }
 
     private void onDetalhes() {
@@ -75,28 +93,56 @@ public class VendasPanel extends JPanel {
 
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog((Frame) parentWindow, "Produtos da Venda ID: " + idVenda, true);
-        dialog.setSize(500, 300);
+        dialog.setSize(550, 300); // alarguei um pk mais p caber
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        String[] colunasProdutos = {"Código", "Produto", "Qtd", "Subtotal"};
+        String[] colunasProdutos = {"Código", "Produto", "Preço Unit.", "Qtd", "Subtotal"};
         DefaultTableModel modelProdutos = new DefaultTableModel(colunasProdutos, 0) {
             @Override
             public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        // TODO: Aqui o backend buscaria os itens vinculados ao idVenda no banco
-        modelProdutos.addRow(new Object[]{"789123", "Item Exemplo A", "2", "R$ 100,00"});
-        modelProdutos.addRow(new Object[]{"789456", "Item Exemplo B", "1", "R$ 50,00"});
+        // Busca a venda
+        Sell targetSale = null;
+        for(Sell s : sellService.listSell()){
+            if(s != null && s.getIdSell() == Integer.parseInt(idVenda)){
+                targetSale = s;
+                break;
+            }
+        }
+
+        if (targetSale != null) {
+            Product p = targetSale.getProduct();
+            double subtotal = p.getPrice() * targetSale.getSellQuantity();
+
+            modelProdutos.addRow(new Object[]{
+                    p.getBarcode(),
+                    p.getName(),
+                    String.format("R$ %.2f", p.getPrice()),
+                    targetSale.getSellQuantity(),
+                    String.format("R$ %.2f", subtotal)
+            });
+        }
 
         JTable tabelaProdutos = new JTable(modelProdutos);
         tabelaProdutos.setRowHeight(25);
+        tabelaProdutos.getTableHeader().setReorderingAllowed(false);
 
         dialog.add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
 
+        JPanel panelBtn = new JPanel(new BorderLayout());
+        panelBtn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margem interna
+
+        if (targetSale != null) {
+            JLabel lblInfo = new JLabel("Data: " + targetSale.getDate() + "  |  Status: " + targetSale.getStatus());
+            lblInfo.setFont(new Font("Arial", Font.BOLD, 12));
+            panelBtn.add(lblInfo, BorderLayout.WEST);
+        }
+
         JButton btnFechar = StopoUiFactory.createButton("Fechar", AppColors.RED, 12, _ -> dialog.dispose());
-        JPanel panelBtn = new JPanel();
-        panelBtn.add(btnFechar);
+        panelBtn.add(btnFechar, BorderLayout.EAST);
+
         dialog.add(panelBtn, BorderLayout.SOUTH);
 
         dialog.setVisible(true);
@@ -109,15 +155,19 @@ public class VendasPanel extends JPanel {
             return;
         }
 
-        String status = tableModel.getValueAt(row, 4).toString();
+        int idSell = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
+        String status  = tableModel.getValueAt(row, 5).toString();
+
         if (status.equals("Cancelada")) {
             JOptionPane.showMessageDialog(this, "Esta venda já está cancelada.");
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja estornar esta venda?", "Estornar Venda", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.showConfirmDialog(this, "Tem certeza que deseja estornar a venda " + idSell + "? O estoque será devolvido.", "Estornar Venda", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
-            tableModel.setValueAt("Cancelada", row, 4);
+            sellService.cancelSell(idSell);
+            onAtualizar();
+            JOptionPane.showMessageDialog(this, "Venda estornada com sucesso!");
         }
     }
 }

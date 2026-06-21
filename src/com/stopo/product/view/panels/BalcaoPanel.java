@@ -1,11 +1,16 @@
 package com.stopo.product.view.panels;
 
 import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
+import com.stopo.product.model.Product;
+import com.stopo.product.model.ProductService;
 import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.uiutils.StopoUiFactory;
+import com.stopo.sell.model.SellService;
 
 public class BalcaoPanel extends JPanel {
 
@@ -19,6 +24,10 @@ public class BalcaoPanel extends JPanel {
     private final JButton btnFinalizar = StopoUiFactory.createButton("Finalizar Venda (F5)",  AppColors.GREEN,  14, _ -> onFinalizar());
     private final JButton btnRemover   = StopoUiFactory.createButton("Remover Item (F3)", AppColors.YELLOW, 12, _ -> onRemover());
     private final JButton btnCancelar  = StopoUiFactory.createButton("Cancelar Venda (F4)", AppColors.RED,    12, _ -> onCancelar());
+
+    private final ProductService productService = new ProductService();
+    private final SellService sellService = new SellService();
+    private double totalSell = 0.0;
 
     public BalcaoPanel() {
         setLayout(new BorderLayout(10, 10));
@@ -91,22 +100,43 @@ public class BalcaoPanel extends JPanel {
         StopoUiFactory.bindKey(this, "F5", "finalizarAction", this::onFinalizar);
     }
 
+    private void attLabelTotal() {
+        lblTotal.setText(String.format("R$ %.2f", totalSell));
+    }
+
     private void onAdicionar() {
         String busca = txtBuscaProduto.getText().trim();
         if (busca.isEmpty()) return;
 
+        Product foundProduct = null;
+        for(Product p:productService.listProducts()) {
+            if(p != null && p.getBarcode().equals(busca)) {
+                foundProduct = p;
+                break;
+            }
+        }
+
+        if(foundProduct == null) {
+            JOptionPane.showMessageDialog(this, "Produto não encontrado para o código: " + busca);
+        }
         int quantidade = (Integer) spnQuantidade.getValue();
-        double precoUnitario = 10.00;
+        if(quantidade > foundProduct.getQuantity()) {
+            JOptionPane.showMessageDialog(this, "Estoque insuficiente! Disponível: " + foundProduct.getQuantity());
+            return;
+        }
+        double precoUnitario = foundProduct.getPrice();
         double subtotal = precoUnitario * quantidade;
 
         tableModel.addRow(new Object[]{
-                busca,
-                "Produto Exemplo",
+                foundProduct.getBarcode(),
+                foundProduct.getName(),
                 quantidade,
                 String.format("R$ %.2f", precoUnitario),
-                String.format("R$ %.2f", subtotal)
+                String.format("R$ %.2f", subtotal) // Formatado para exibição
         });
 
+        totalSell += subtotal;
+        attLabelTotal();
         txtBuscaProduto.setText("");
         spnQuantidade.setValue(1);
         txtBuscaProduto.requestFocus();
@@ -118,6 +148,11 @@ public class BalcaoPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Selecione um item no carrinho para remover.");
             return;
         }
+        String subtotal = (String) tableModel.getValueAt(selectedRow, 4);
+        double valueRemoved = Double.parseDouble(subtotal.replace("R$", "").trim().replace(",", "."));
+
+        totalSell -= valueRemoved;
+        attLabelTotal();
         tableModel.removeRow(selectedRow);
     }
 
@@ -127,15 +162,42 @@ public class BalcaoPanel extends JPanel {
             return;
         }
         System.out.println("Finalizando a venda...");
-        // TODO: Backend salva a venda
-        tableModel.setRowCount(0);
+
+        String dateSell = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+
+        for(int i = 0; i < tableModel.getRowCount(); i++) {
+            String barcode = tableModel.getValueAt(i, 0).toString();
+            int qntSelled = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
+            Product productSelled = null;
+
+            for(Product p: productService.listProducts()) {
+                if(p.getBarcode().equals(barcode)) {
+                    productSelled = p;
+                    break;
+                }
+            }
+            if (productSelled != null) {
+                // Agora sim, 4 parâmetros fechando certinho com o Service!
+                sellService.addSell(0, dateSell, productSelled, qntSelled, "Concluída");
+            }
+        }
+
+        JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!\nTotal pago: " + String.format("R$ %.2f", totalSell));
+        onCancelar();
     }
 
     private void onCancelar() {
-        int confirm = JOptionPane.showConfirmDialog(this, "Deseja cancelar a venda atual?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int confirm = JOptionPane.YES_NO_OPTION;
+        if (tableModel.getRowCount() > 0) {
+            confirm = JOptionPane.showConfirmDialog(this, "Deseja limpar o carrinho atual?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        }
+
         if (confirm == JOptionPane.YES_OPTION) {
             tableModel.setRowCount(0);
-            lblTotal.setText("R$ 0,00");
+            totalSell = 0.0;
+            attLabelTotal();
+            txtBuscaProduto.setText("");
+            txtBuscaProduto.requestFocus();
         }
     }
 }

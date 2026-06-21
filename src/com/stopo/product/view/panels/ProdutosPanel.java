@@ -41,7 +41,7 @@ public class ProdutosPanel extends JPanel {
     private final JButton btnRemoverImg    = StopoUiFactory.createButton("Remover", AppColors.RED, 12, _ -> setImagem(null));
 
     //addBackend
-    ProductService productService = new ProductService();
+    private final ProductService productService = new ProductService();
     private int idACTProduct = -1;
 
     public ProdutosPanel() {
