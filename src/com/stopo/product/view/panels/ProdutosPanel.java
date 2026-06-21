@@ -181,7 +181,7 @@ public class ProdutosPanel extends JPanel {
                         imageDir.mkdir();
                     }
                     String extens = currentImagePath.substring(currentImagePath.lastIndexOf('.'));
-                    arqImageName = System.currentTimeMillis() + "." + extens;
+                    arqImageName = System.currentTimeMillis() + extens;
                     Path origin = Paths.get(currentImagePath);
                     Path dest = Paths.get("src/resources/images/" + arqImageName);
                     Files.copy(origin, dest, StandardCopyOption.REPLACE_EXISTING);
@@ -193,6 +193,11 @@ public class ProdutosPanel extends JPanel {
             if(idACTProduct == -1) {
                 productService.addProduct(name, description, price, qnt, arqImageName);
                 JOptionPane.showMessageDialog(null,"Produto Adicionado com sucesso!");
+            } else {
+                String barcode = txtCodigoBarras.getText();
+                Product editedProduct = new Product(idACTProduct, name, description, price, qnt, barcode, arqImageName);
+                productService.attProduct(editedProduct);
+                JOptionPane.showMessageDialog(null,"Produto Atualizado com sucesso!");
             }
             adicionarProdutosTable();
             onNovo();
@@ -213,6 +218,18 @@ public class ProdutosPanel extends JPanel {
         txtPreco.setText(tableModel.getValueAt(selectedRow, 3).toString());
         txtEstoque.setText(tableModel.getValueAt(selectedRow, 4).toString());
         txtCodigoBarras.setText(tableModel.getValueAt(selectedRow, 5).toString());
+        Product[] now = productService.listProducts();
+        for(Product p:now) {
+            if(p.getId() == idACTProduct) {
+                String imageName = p.getImagepath();
+                if(imageName != null && !imageName.isEmpty() && !imageName.equals("null")) {
+                    setImagem("src/resources/images/" + imageName);
+                } else{
+                    setImagem(null);
+                }
+                break;
+            }
+        }
     }
 
     private void onExcluir() {
