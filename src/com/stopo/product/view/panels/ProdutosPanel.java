@@ -4,11 +4,17 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
+import com.stopo.product.model.Product;
+import com.stopo.product.model.ProductService;
 import com.stopo.product.view.uiconstants.AppColors;
 import com.stopo.product.view.uiutils.StopoUiFactory;
 
@@ -34,10 +40,14 @@ public class ProdutosPanel extends JPanel {
     private final JButton btnSelecionarImg = StopoUiFactory.createButton("Selecionar", AppColors.BLUE, 12, _ -> escolherImagem());
     private final JButton btnRemoverImg    = StopoUiFactory.createButton("Remover", AppColors.RED, 12, _ -> setImagem(null));
 
+    //addBackend
+    ProductService productService = new ProductService();
+    private int idACTProduct = -1;
+
     public ProdutosPanel() {
         setLayout(new BorderLayout(10, 10));
-
-        String[] colunas = {"Nome", "Descrição", "Preço", "Estoque", "Código de Barras"};
+        //id;name;description;price;quantity;barcode;
+        String[] colunas = {"id", "Nome", "Descrição", "Preço", "Estoque", "Código de Barras"};
         tableModel = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -46,7 +56,7 @@ public class ProdutosPanel extends JPanel {
         tabelaProdutos.setRowHeight(30);
         tabelaProdutos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabelaProdutos.getTableHeader().setReorderingAllowed(false);
-        adicionarProdutosDeTeste();
+        adicionarProdutosTable();
 
         add(StopoUiFactory.createPanelHeader("Produtos", "Crud de produtos"), BorderLayout.NORTH);
         add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
@@ -75,7 +85,7 @@ public class ProdutosPanel extends JPanel {
         fieldsPanel.add(new JLabel("Descrição:"));     fieldsPanel.add(txtDescricao);
         fieldsPanel.add(new JLabel("Preço:"));         fieldsPanel.add(txtPreco);
         fieldsPanel.add(new JLabel("Qnt. Estoque:"));  fieldsPanel.add(txtEstoque);
-        fieldsPanel.add(new JLabel("Cód. Barras:"));   fieldsPanel.add(txtCodigoBarras);
+        //fieldsPanel.add(new JLabel("Cód. Barras:"));   fieldsPanel.add(txtCodigoBarras);
 
         JPanel formPanel = new JPanel(new BorderLayout(0, 10));
         formPanel.add(imageContainer, BorderLayout.NORTH);
@@ -132,6 +142,7 @@ public class ProdutosPanel extends JPanel {
     }
 
     private void onNovo() {
+        idACTProduct = -1;
         txtNome.setText("");
         txtDescricao.setText("");
         txtPreco.setText("");
@@ -144,6 +155,50 @@ public class ProdutosPanel extends JPanel {
     private void onSalvar() {
         System.out.println("Salvando produto...");
         // TODO: Pegar os dados dos txtFields e enviar para o backend
+        String name = txtNome.getText();
+        String description = txtDescricao.getText();
+        String priceStr = txtPreco.getText();
+        String qntStr = txtEstoque.getText();
+
+        if(name.isEmpty() || priceStr.isEmpty() || qntStr.isEmpty()) {
+            System.out.println("valores que n podem ser nulos");
+            JOptionPane.showMessageDialog(null,"ERRO! Preencha todos os campos obrigatorios!");
+            return;
+        }
+        try {
+            double price = Double.parseDouble(priceStr.replace(",", "."));
+            int qnt = Integer.parseInt(qntStr);
+            if(price <= 0 || qnt <= 0) {
+                JOptionPane.showMessageDialog(null,"ERRO! Valores de preço e estoque devem ser maiores que zero!");
+                return;
+            }
+            String arqImageName = "null";
+
+            if (currentImagePath != null) {
+                try {
+                    File imageDir = new File("src/resources/images/");
+                    if (!imageDir.exists()) {
+                        imageDir.mkdir();
+                    }
+                    String extens = currentImagePath.substring(currentImagePath.lastIndexOf('.'));
+                    arqImageName = System.currentTimeMillis() + "." + extens;
+                    Path origin = Paths.get(currentImagePath);
+                    Path dest = Paths.get("src/resources/images/" + arqImageName);
+                    Files.copy(origin, dest, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(null, "Erro ao carregar a imagem!");
+                    return;
+                }
+            }
+            if(idACTProduct == -1) {
+                productService.addProduct(name, description, price, qnt, arqImageName);
+                JOptionPane.showMessageDialog(null,"Produto Adicionado com sucesso!");
+            }
+            adicionarProdutosTable();
+            onNovo();
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(null, "ERRO AO SALVAR!" + e.getMessage());
+        }
     }
 
     private void onEditar() {
@@ -152,12 +207,12 @@ public class ProdutosPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Escolha um produto na tabela para editar.");
             return;
         }
-
-        txtNome.setText(tableModel.getValueAt(selectedRow, 0).toString());
-        txtDescricao.setText(tableModel.getValueAt(selectedRow, 1).toString());
-        txtPreco.setText(tableModel.getValueAt(selectedRow, 2).toString());
-        txtEstoque.setText(tableModel.getValueAt(selectedRow, 3).toString());
-        txtCodigoBarras.setText(tableModel.getValueAt(selectedRow, 4).toString());
+        idACTProduct = Integer.parseInt(tabelaProdutos.getValueAt(selectedRow, 0).toString());
+        txtNome.setText(tableModel.getValueAt(selectedRow, 1).toString());
+        txtDescricao.setText(tableModel.getValueAt(selectedRow, 2).toString());
+        txtPreco.setText(tableModel.getValueAt(selectedRow, 3).toString());
+        txtEstoque.setText(tableModel.getValueAt(selectedRow, 4).toString());
+        txtCodigoBarras.setText(tableModel.getValueAt(selectedRow, 5).toString());
     }
 
     private void onExcluir() {
@@ -169,20 +224,27 @@ public class ProdutosPanel extends JPanel {
 
         int confirm = JOptionPane.showConfirmDialog(this, "Deseja realmente excluir este produto?", "Confirmar", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
+            int idForDelete = Integer.parseInt(tabelaProdutos.getValueAt(selectedRow, 0).toString());
+            productService.deleteProduct(idForDelete);
             tableModel.removeRow(selectedRow);
+            adicionarProdutosTable();
             onNovo();
-            // TODO: Chamar backend para deletar do banco
+            JOptionPane.showMessageDialog(this, "Produto excluído com sucesso!");
         }
     }
 
-    private void adicionarProdutosDeTeste() {
-        Object[][] dados = {
-                {"Teclado Mecânico Redragon", "Switch Azul", "R$ 289,99", "8", "7899876543210"},
-                {"Mouse Logitech MX Master 3", "Mouse sem fio", "R$ 649,90", "11", "7894321098765"},
-                {"Monitor LG 27\" 4K", "IPS HDR", "R$ 2199,00", "23", "7892345678901"}
-        };
-        for (Object[] linha : dados) {
-            tableModel.addRow(linha);
+    private void adicionarProdutosTable() {
+        tableModel.setRowCount(0);
+        Product[] products = productService.listProducts();
+        for(Product p:  products){
+            tableModel.addRow(new Object[]{
+                    p.getId(),
+                    p.getName(),
+                    p.getDescription(),
+                    p.getPrice(),
+                    p.getQuantity(),
+                    p.getBarcode()
+            });
         }
     }
 }

@@ -3,8 +3,8 @@ package com.stopo.product.model;
 import com.stopo.utils.CSVUtil;
 
 public class ProductService {
-    private final String ARQ = "src/com/stopo/resources/csv/produtos.csv";
-    private final String HEAD = "id;name;description;price;quantity;barcode;";
+    private final String ARQ = "src/resources/csv/produtos.csv";
+    private final String HEAD = "id;name;description;price;quantity;barcode;imagepath;";
 
     public ProductService() {
         CSVUtil.createCsv(ARQ, HEAD);
@@ -28,14 +28,14 @@ public class ProductService {
         CSVUtil.saveCSV(ARQ, HEAD, lineNF);
     }
 
-    public void addProduct(String name, String description, double price, int quantity) {
+    public void addProduct(String name, String description, double price, int quantity, String imagePath) {
         Product[] now = listProducts();
         int nextId = getNextId();
         String generateBarCode = String.format("1%012d", nextId); // 1 + 12 zeros = 13 digitos
         int checkDigit = calcCheckDigit(generateBarCode);
         String barcode = generateBarCode + checkDigit;
 
-        Product newProduct = new Product(nextId, name, description, price, quantity, barcode);
+        Product newProduct = new Product(nextId, name, description, price, quantity, barcode, imagePath);
         Product[] newProducts = new Product[now.length + 1];
         for(int i = 0; i < now.length; i++) {
             newProducts[i] = now[i];
@@ -59,15 +59,31 @@ public class ProductService {
         return now[now.length - 1].getId() + 1; //pegar o ultimo +1
     }
 
-    public void attProduto(Product editProduct) {
-        Product[] products = listProducts();
-        for (int i = 0; i < products.length; i++) {
-            if (products[i] != null && products[i].getId() == editProduct.getId()) {
+    public void attProduct(Product editProduct) {
+        Product[] now = listProducts();
+        for (int i = 0; i < now.length; i++) {
+            if (now[i] != null && now[i].getId() == editProduct.getId()) {
                 // Substitui o produto antigo pelo editado
-                products[i] = editProduct;
+                now[i] = editProduct;
                 break;
             }
         }
-        saveProduct(products);
+        saveProduct(now);
+    }
+
+    public void deleteProduct(int idProduct) {
+        Product[] now = listProducts();
+        if(now.length == 0) return;
+        Product[] newProducts = new Product[now.length - 1];
+        int index = 0;
+        for(Product p:now) {
+            if(p.getId() == idProduct) {
+                if(index<newProducts.length) {
+                    newProducts[index] = p;
+                    index++;
+                }
+            }
+        }
+        saveProduct(newProducts);
     }
 }

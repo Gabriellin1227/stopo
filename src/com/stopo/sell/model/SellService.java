@@ -5,7 +5,7 @@ import com.stopo.product.model.ProductService;
 import com.stopo.utils.CSVUtil;
 
 public class SellService {
-    private final String ARQ = "src/com/stopo/resources/csv/sell.csv";
+    private final String ARQ = "src/resources/csv/sell.csv";
     private final String HEAD = "idSell;date;id;name;description;price;quantity;barcode;quantity;price;";
     ProductService productService = new ProductService();
 
@@ -36,7 +36,7 @@ public class SellService {
             return;
         }
         product.setQuantity(product.getQuantity() + sellQuantity);
-        productService.attProduto(product);
+        productService.attProduct(product);
         Sell[] now = listSell();
         int nextIdSell = getNextId();
         double totalPrice = product.getPrice() * sellQuantity;
@@ -65,11 +65,11 @@ public class SellService {
         for(Product p : products) {
             if(p.getId() == sellToCancel.getIdProduct()) {
                 p.setQuantity(p.getQuantity() - sellToCancel.getSellQuantity());
-                productService.attProduto(p);
+                productService.attProduct(p);
                 break;
             }
         }
-        Sell[] newSells = new Sell[now.length - 1]; // cria lista com n-1 e da um copy em td menos no cancel 
+        Sell[] newSells = new Sell[now.length - 1]; // cria lista com n-1 e da um copy em td menos no cancel
         int idx = 0;
         for(Sell s: now) {
             if(s.getIdSell() != idSell) {
