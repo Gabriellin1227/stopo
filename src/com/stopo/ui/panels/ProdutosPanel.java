@@ -40,13 +40,11 @@ public class ProdutosPanel extends JPanel {
     private final JButton btnSelecionarImg = StopoUiFactory.createButton("Selecionar", AppColors.BLUE, 12, _ -> escolherImagem());
     private final JButton btnRemoverImg    = StopoUiFactory.createButton("Remover", AppColors.RED, 12, _ -> setImagem(null));
 
-    //addBackend
     private final ProductService productService = new ProductService();
     private int idACTProduct = -1;
 
     public ProdutosPanel() {
         setLayout(new BorderLayout(10, 10));
-        //id;name;description;price;quantity;barcode;
         String[] colunas = {"id", "Nome", "Descrição", "Preço", "Estoque", "Código de Barras"};
         tableModel = new DefaultTableModel(colunas, 0) {
             @Override
@@ -61,23 +59,16 @@ public class ProdutosPanel extends JPanel {
         add(StopoUiFactory.createPanelHeader("Produtos", "Crud de produtos"), BorderLayout.NORTH);
         add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
         add(buildEastPanel(), BorderLayout.EAST);
-        /*
-        * atulizando o componente e buscando no csv toda vez q abre
-        * tava com problema quando estornava n att o estoque
-        */
+
         this.addAncestorListener(new javax.swing.event.AncestorListener() {
             @Override
             public void ancestorAdded(javax.swing.event.AncestorEvent event) {
                 adicionarProdutosTable();
             }
-
             @Override
-            public void ancestorRemoved(javax.swing.event.AncestorEvent event) {
-            }
-
+            public void ancestorRemoved(javax.swing.event.AncestorEvent event) {}
             @Override
-            public void ancestorMoved(javax.swing.event.AncestorEvent event) {
-            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent event) {}
         });
         bindKeys();
     }
@@ -102,7 +93,7 @@ public class ProdutosPanel extends JPanel {
         fieldsPanel.add(new JLabel("Descrição:"));     fieldsPanel.add(txtDescricao);
         fieldsPanel.add(new JLabel("Preço:"));         fieldsPanel.add(txtPreco);
         fieldsPanel.add(new JLabel("Qnt. Estoque:"));  fieldsPanel.add(txtEstoque);
-        //fieldsPanel.add(new JLabel("Cód. Barras:"));   fieldsPanel.add(txtCodigoBarras);
+        fieldsPanel.add(new JLabel("Cód. Barras (Vazio = Auto):")); fieldsPanel.add(txtCodigoBarras);
 
         JPanel formPanel = new JPanel(new BorderLayout(0, 10));
         formPanel.add(imageContainer, BorderLayout.NORTH);
@@ -170,15 +161,13 @@ public class ProdutosPanel extends JPanel {
     }
 
     private void onSalvar() {
-        System.out.println("Salvando produto...");
-        // TODO: Pegar os dados dos txtFields e enviar para o backend
         String name = txtNome.getText();
         String description = txtDescricao.getText();
         String priceStr = txtPreco.getText();
         String qntStr = txtEstoque.getText();
+        String barcodeInput = txtCodigoBarras.getText().trim();
 
         if(name.isEmpty() || priceStr.isEmpty() || qntStr.isEmpty()) {
-            System.out.println("valores que n podem ser nulos");
             JOptionPane.showMessageDialog(null,"ERRO! Preencha todos os campos obrigatorios!");
             return;
         }
@@ -189,7 +178,15 @@ public class ProdutosPanel extends JPanel {
                 JOptionPane.showMessageDialog(null,"ERRO! Valores de preço e estoque devem ser maiores que zero!");
                 return;
             }
-            String arqImageName = "null";
+
+            String arqImageName = "default.png";
+            String codigoBarrasAtual;
+
+            if (idACTProduct == -1) {
+                codigoBarrasAtual = barcodeInput.isEmpty() ? productService.generateBarcodeForId(productService.getNextId()) : barcodeInput;
+            } else {
+                codigoBarrasAtual = barcodeInput.isEmpty() ? productService.generateBarcodeForId(idACTProduct) : barcodeInput;
+            }
 
             if (currentImagePath != null) {
                 try {
@@ -198,7 +195,9 @@ public class ProdutosPanel extends JPanel {
                         imageDir.mkdir();
                     }
                     String extens = currentImagePath.substring(currentImagePath.lastIndexOf('.'));
-                    arqImageName = System.currentTimeMillis() + extens;
+
+                    arqImageName = codigoBarrasAtual + extens;
+
                     Path origin = Paths.get(currentImagePath);
                     Path dest = Paths.get("src/resources/images/" + arqImageName);
                     Files.copy(origin, dest, StandardCopyOption.REPLACE_EXISTING);
@@ -206,13 +205,21 @@ public class ProdutosPanel extends JPanel {
                     JOptionPane.showMessageDialog(null, "Erro ao carregar a imagem!");
                     return;
                 }
+            } else if (idACTProduct != -1) {
+                Product[] now = productService.listProducts();
+                for(Product p : now) {
+                    if(p.getId() == idACTProduct) {
+                        arqImageName = p.getImagepath();
+                        break;
+                    }
+                }
             }
+
             if(idACTProduct == -1) {
-                productService.addProduct(name, description, price, qnt, arqImageName);
+                productService.addProduct(name, description, price, qnt, codigoBarrasAtual, arqImageName);
                 JOptionPane.showMessageDialog(null,"Produto Adicionado com sucesso!");
             } else {
-                String barcode = txtCodigoBarras.getText();
-                Product editedProduct = new Product(idACTProduct, name, description, price, qnt, barcode, arqImageName);
+                Product editedProduct = new Product(idACTProduct, name, description, price, qnt, codigoBarrasAtual, arqImageName);
                 productService.attProduct(editedProduct);
                 JOptionPane.showMessageDialog(null,"Produto Atualizado com sucesso!");
             }
@@ -235,6 +242,7 @@ public class ProdutosPanel extends JPanel {
         txtPreco.setText(tableModel.getValueAt(selectedRow, 3).toString());
         txtEstoque.setText(tableModel.getValueAt(selectedRow, 4).toString());
         txtCodigoBarras.setText(tableModel.getValueAt(selectedRow, 5).toString());
+
         Product[] now = productService.listProducts();
         for(Product p:now) {
             if(p.getId() == idACTProduct) {
@@ -242,7 +250,7 @@ public class ProdutosPanel extends JPanel {
                 if(imageName != null && !imageName.isEmpty() && !imageName.equals("null")) {
                     setImagem("src/resources/images/" + imageName);
                 } else{
-                    setImagem(null);
+                    setImagem("src/resources/images/default.png");
                 }
                 break;
             }

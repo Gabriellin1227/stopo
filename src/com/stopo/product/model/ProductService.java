@@ -28,12 +28,16 @@ public class ProductService {
         CSVUtil.saveCSV(ARQ, HEAD, lineNF);
     }
 
-    public void addProduct(String name, String description, double price, int quantity, String imagePath) {
+    public String generateBarcodeForId(int id) {
+        String generateBarCode = String.format("1%012d", id);
+        int checkDigit = calcCheckDigit(generateBarCode);
+        return generateBarCode + checkDigit;
+    }
+
+    // Agora o método recebe o barcode vindo da interface
+    public void addProduct(String name, String description, double price, int quantity, String barcode, String imagePath) {
         Product[] now = listProducts();
         int nextId = getNextId();
-        String generateBarCode = String.format("1%012d", nextId); // 1 + 12 zeros = 13 digitos
-        int checkDigit = calcCheckDigit(generateBarCode);
-        String barcode = generateBarCode + checkDigit;
 
         Product newProduct = new Product(nextId, name, description, price, quantity, barcode, imagePath);
         Product[] newProducts = new Product[now.length + 1];
@@ -56,14 +60,13 @@ public class ProductService {
     public int getNextId() {
         Product[] now = listProducts();
         if(now.length == 0 ) return 1;
-        return now[now.length - 1].getId() + 1; //pegar o ultimo +1
+        return now[now.length - 1].getId() + 1;
     }
 
     public void attProduct(Product editProduct) {
         Product[] now = listProducts();
         for (int i = 0; i < now.length; i++) {
             if (now[i] != null && now[i].getId() == editProduct.getId()) {
-                // Substitui o produto antigo pelo editado
                 now[i] = editProduct;
                 break;
             }
@@ -77,7 +80,7 @@ public class ProductService {
         Product[] newProducts = new Product[now.length - 1];
         int index = 0;
         for(Product p:now) {
-            if(p.getId() == idProduct) {
+            if(p.getId() != idProduct) {
                 if(index<newProducts.length) {
                     newProducts[index] = p;
                     index++;

@@ -1,6 +1,8 @@
 package com.stopo.ui.panels;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -9,6 +11,7 @@ import com.stopo.ui.constants.AppColors;
 import com.stopo.ui.uiutils.StopoUiFactory;
 import com.stopo.sell.model.Sell;
 import com.stopo.sell.model.SellService;
+import com.stopo.utils.CpfValidator;
 
 public class VendasPanel extends JPanel {
 
@@ -19,14 +22,12 @@ public class VendasPanel extends JPanel {
     private final JButton btnDetalhes  = StopoUiFactory.createButton("Ver Detalhes (F3)", AppColors.BLUE, 12, _ -> onDetalhes());
     private final JButton btnEstornar  = StopoUiFactory.createButton("Estornar Venda (F4)", AppColors.RED, 12, _ -> onEstornar());
 
-    private static int sequencialVendasId = 1;
-
     private final SellService sellService = new SellService();
 
     public VendasPanel() {
         setLayout(new BorderLayout(10, 10));
 
-        String[] colunas = {"ID Venda", "Data da Venda", "Produto", "Qtd. Itens", "Valor Total", "Status"};
+        String[] colunas = {"ID Venda", "Data da Venda", "Qtd. Itens", "Valor Total", "Status", "CPF Cliente"};
         tableModel = new DefaultTableModel(colunas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -43,8 +44,7 @@ public class VendasPanel extends JPanel {
         add(buildEastPanel(), BorderLayout.EAST);
 
         bindKeys();
-
-        onAtualizar(); // adicionei pra att ao abrir
+        onAtualizar();
     }
 
     private JPanel buildEastPanel() {
@@ -67,16 +67,32 @@ public class VendasPanel extends JPanel {
 
     private void onAtualizar() {
         tableModel.setRowCount(0);
-        Sell[] now = sellService.listSell();
-        for(Sell s:now){
-            if(s != null){
+        Sell[] allSells = sellService.listSell();
+        List<Integer> processedIds = new ArrayList<>();
+
+        for(Sell s : allSells) {
+            if(s != null && !processedIds.contains(s.getIdSell())) {
+                processedIds.add(s.getIdSell());
+
+                int totalItems = 0;
+                double totalValue = 0.0;
+
+                for(Sell sub : allSells) {
+                    if(sub != null && sub.getIdSell() == s.getIdSell()) {
+                        totalItems += sub.getSellQuantity();
+                        totalValue += (sub.getProduct().getPrice() * sub.getSellQuantity());
+                    }
+                }
+
+                String cpfFormatado = s.getCustomerCpf().equals("null") ? "-" : CpfValidator.formatCpf(s.getCustomerCpf());
+
                 tableModel.addRow(new Object[]{
                         s.getIdSell(),
                         s.getDate(),
-                        s.getProduct().getName(),
-                        s.getSellQuantity(),
-                        String.format("R$ %.2f", (s.getProduct().getPrice() * s.getSellQuantity())),
-                        s.getStatus()
+                        totalItems + " itens",
+                        String.format("R$ %.2f", totalValue),
+                        s.getStatus(),
+                        cpfFormatado
                 });
             }
         }
@@ -89,11 +105,12 @@ public class VendasPanel extends JPanel {
             return;
         }
 
-        String idVenda = tableModel.getValueAt(row, 0).toString();
+        String idVendaStr = tableModel.getValueAt(row, 0).toString();
+        int idVenda = Integer.parseInt(idVendaStr);
 
         Window parentWindow = SwingUtilities.getWindowAncestor(this);
         JDialog dialog = new JDialog((Frame) parentWindow, "Produtos da Venda ID: " + idVenda, true);
-        dialog.setSize(550, 300); // alarguei um pk mais p caber
+        dialog.setSize(600, 350);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
@@ -103,48 +120,46 @@ public class VendasPanel extends JPanel {
             public boolean isCellEditable(int r, int c) { return false; }
         };
 
-        // Busca a venda
-        Sell targetSale = null;
+        String dataVenda = "";
+        String status = "";
+        String cpfCliente = "-";
+
         for(Sell s : sellService.listSell()){
-            if(s != null && s.getIdSell() == Integer.parseInt(idVenda)){
-                targetSale = s;
-                break;
+            if(s != null && s.getIdSell() == idVenda){
+                Product p = s.getProduct();
+                double subtotal = p.getPrice() * s.getSellQuantity();
+                dataVenda = s.getDate();
+                status = s.getStatus();
+                if(!s.getCustomerCpf().equals("null")) {
+                    cpfCliente = CpfValidator.formatCpf(s.getCustomerCpf());
+                }
+
+                modelProdutos.addRow(new Object[]{
+                        p.getBarcode(),
+                        p.getName(),
+                        String.format("R$ %.2f", p.getPrice()),
+                        s.getSellQuantity(),
+                        String.format("R$ %.2f", subtotal)
+                });
             }
-        }
-
-        if (targetSale != null) {
-            Product p = targetSale.getProduct();
-            double subtotal = p.getPrice() * targetSale.getSellQuantity();
-
-            modelProdutos.addRow(new Object[]{
-                    p.getBarcode(),
-                    p.getName(),
-                    String.format("R$ %.2f", p.getPrice()),
-                    targetSale.getSellQuantity(),
-                    String.format("R$ %.2f", subtotal)
-            });
         }
 
         JTable tabelaProdutos = new JTable(modelProdutos);
         tabelaProdutos.setRowHeight(25);
         tabelaProdutos.getTableHeader().setReorderingAllowed(false);
-
         dialog.add(new JScrollPane(tabelaProdutos), BorderLayout.CENTER);
 
         JPanel panelBtn = new JPanel(new BorderLayout());
-        panelBtn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margem interna
+        panelBtn.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        if (targetSale != null) {
-            JLabel lblInfo = new JLabel("Data: " + targetSale.getDate() + "  |  Status: " + targetSale.getStatus());
-            lblInfo.setFont(new Font("Arial", Font.BOLD, 12));
-            panelBtn.add(lblInfo, BorderLayout.WEST);
-        }
+        JLabel lblInfo = new JLabel("Data: " + dataVenda + "  |  Status: " + status + "  |  CPF: " + cpfCliente);
+        lblInfo.setFont(new Font("Arial", Font.BOLD, 12));
+        panelBtn.add(lblInfo, BorderLayout.WEST);
 
         JButton btnFechar = StopoUiFactory.createButton("Fechar", AppColors.RED, 12, _ -> dialog.dispose());
         panelBtn.add(btnFechar, BorderLayout.EAST);
 
         dialog.add(panelBtn, BorderLayout.SOUTH);
-
         dialog.setVisible(true);
     }
 
@@ -156,7 +171,7 @@ public class VendasPanel extends JPanel {
         }
 
         int idSell = Integer.parseInt(tableModel.getValueAt(row, 0).toString());
-        String status  = tableModel.getValueAt(row, 5).toString();
+        String status  = tableModel.getValueAt(row, 4).toString();
 
         if (status.equals("Cancelada")) {
             JOptionPane.showMessageDialog(this, "Esta venda já está cancelada.");
