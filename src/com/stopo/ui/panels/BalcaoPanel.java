@@ -10,12 +10,15 @@ import com.stopo.product.model.Product;
 import com.stopo.product.model.ProductService;
 import com.stopo.ui.constants.AppColors;
 import com.stopo.ui.uiutils.StopoUiFactory;
+import com.stopo.sell.model.Sell;
 import com.stopo.sell.model.SellService;
+import com.stopo.utils.CpfValidator;
 
 public class BalcaoPanel extends JPanel {
 
     private final JTextField txtBuscaProduto;
-    private final JSpinner spnQuantidade; // Adicionado o seletor
+    private final JSpinner spnQuantidade;
+    private final JTextField txtCpfCliente;
     private final JTable tabelaCarrinho;
     private final DefaultTableModel tableModel;
     private final JLabel lblTotal;
@@ -33,6 +36,7 @@ public class BalcaoPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
 
         txtBuscaProduto = new JTextField(15);
+        txtCpfCliente = new JTextField(11);
 
         spnQuantidade = new JSpinner(new SpinnerNumberModel(1, 1, Integer.MAX_VALUE, 1));
         spnQuantidade.setPreferredSize(new Dimension(60, 25));
@@ -70,6 +74,9 @@ public class BalcaoPanel extends JPanel {
         searchPanel.add(new JLabel("Qtd:"));
         searchPanel.add(spnQuantidade);
         searchPanel.add(btnAdicionar);
+
+        searchPanel.add(new JLabel("CPF (opcional):"));
+        searchPanel.add(txtCpfCliente);
 
         northPanel.add(searchPanel, BorderLayout.SOUTH);
         return northPanel;
@@ -120,20 +127,41 @@ public class BalcaoPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "Produto não encontrado para o código: " + busca);
             return;
         }
-        int quantidade = (Integer) spnQuantidade.getValue();
-        if(quantidade > foundProduct.getQuantity()) {
+
+        int quantidadeSolicitada = (Integer) spnQuantidade.getValue();
+        int rowIndexToUpdate = -1;
+        int quantidadeNoCarrinho = 0;
+
+        for (int i = 0; i < tableModel.getRowCount(); i++) {
+            if (tableModel.getValueAt(i, 0).toString().equals(foundProduct.getBarcode())) {
+                rowIndexToUpdate = i;
+                quantidadeNoCarrinho = Integer.parseInt(tableModel.getValueAt(i, 2).toString());
+                break;
+            }
+        }
+
+        int totalDesejado = quantidadeSolicitada + quantidadeNoCarrinho;
+        if(totalDesejado > foundProduct.getQuantity()) {
             JOptionPane.showMessageDialog(this, "Estoque insuficiente! Disponível: " + foundProduct.getQuantity());
             return;
         }
+
+        if (rowIndexToUpdate != -1) {
+            String subTotalStr = (String) tableModel.getValueAt(rowIndexToUpdate, 4);
+            double valueRemoved = Double.parseDouble(subTotalStr.replace("R$", "").trim().replace(",", "."));
+            totalSell -= valueRemoved;
+            tableModel.removeRow(rowIndexToUpdate);
+        }
+
         double precoUnitario = foundProduct.getPrice();
-        double subtotal = precoUnitario * quantidade;
+        double subtotal = precoUnitario * totalDesejado;
 
         tableModel.addRow(new Object[]{
                 foundProduct.getBarcode(),
                 foundProduct.getName(),
-                quantidade,
+                totalDesejado,
                 String.format("R$ %.2f", precoUnitario),
-                String.format("R$ %.2f", subtotal) // Formatado para exibição
+                String.format("R$ %.2f", subtotal)
         });
 
         totalSell += subtotal;
@@ -162,9 +190,17 @@ public class BalcaoPanel extends JPanel {
             JOptionPane.showMessageDialog(this, "O carrinho está vazio.");
             return;
         }
-        System.out.println("Finalizando a venda...");
+
+        String cpf = txtCpfCliente.getText().trim();
+        if (!cpf.isEmpty() && !CpfValidator.isValidCpf(cpf)) {
+            JOptionPane.showMessageDialog(this, "CPF inválido! Por favor, corrija ou deixe em branco.");
+            return;
+        }
 
         String dateSell = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        int idSell = sellService.getNextId();
+
+        Sell[] itemsToSell = new Sell[tableModel.getRowCount()];
 
         for(int i = 0; i < tableModel.getRowCount(); i++) {
             String barcode = tableModel.getValueAt(i, 0).toString();
@@ -178,12 +214,20 @@ public class BalcaoPanel extends JPanel {
                 }
             }
             if (productSelled != null) {
-                sellService.addSell(0, dateSell, productSelled, qntSelled, "Concluída");
+                itemsToSell[i] = new Sell(idSell, dateSell, productSelled, qntSelled, "Concluída", cpf.isEmpty() ? "null" : cpf);
             }
         }
 
+        sellService.addSells(itemsToSell);
+
         JOptionPane.showMessageDialog(this, "Venda finalizada com sucesso!\nTotal pago: " + String.format("R$ %.2f", totalSell));
-        onCancelar();
+
+        tableModel.setRowCount(0);
+        totalSell = 0.0;
+        attLabelTotal();
+        txtBuscaProduto.setText("");
+        txtCpfCliente.setText("");
+        txtBuscaProduto.requestFocus();
     }
 
     private void onCancelar() {
@@ -197,6 +241,7 @@ public class BalcaoPanel extends JPanel {
             totalSell = 0.0;
             attLabelTotal();
             txtBuscaProduto.setText("");
+            txtCpfCliente.setText("");
             txtBuscaProduto.requestFocus();
         }
     }
