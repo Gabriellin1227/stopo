@@ -5,8 +5,8 @@ import com.stopo.product.model.ProductService;
 import com.stopo.utils.CSVUtil;
 
 public class SellService {
-    private final String ARQ = "src/com/stopo/resources/csv/sell.csv";
-    private final String HEAD = "idSell;date;id;name;description;price;quantity;barcode;quantity;price;";
+    private final String ARQ = "src/resources/csv/sell.csv";
+    private final String HEAD = "idSell;date;id;name;description;price;quantity;barcode;quantity;price;status;";
     ProductService productService = new ProductService();
 
     public SellService() { CSVUtil.createCsv(ARQ, HEAD); }
@@ -29,23 +29,24 @@ public class SellService {
         CSVUtil.saveCSV(ARQ,HEAD,lineNF);
     }
 
-    public void addSell(int sell, String date, Product product, int sellQuantity) {
+    public void addSell(int sell, String date, Product product, int sellQuantity, String status) {
         // verif do estoque do produto
         if(product.getQuantity() < sellQuantity){
             System.out.println("Sell quantity exceeded");
             return;
         }
-        product.setQuantity(product.getQuantity() + sellQuantity);
-        productService.attProduto(product);
+        product.setQuantity(product.getQuantity() - sellQuantity);
+        productService.attProduct(product);
         Sell[] now = listSell();
         int nextIdSell = getNextId();
-        double totalPrice = product.getPrice() * sellQuantity;
-        Sell newSell = new Sell(nextIdSell, date, product, sellQuantity);
+        Sell newSell = new Sell(nextIdSell, date, product, sellQuantity, "Concluida");
 
         Sell[] newSells = new Sell[now.length + 1];
         for (int i = 0; i < now.length; i++) {
             newSells[i] = now[i];
         }
+        newSells[newSells.length - 1] = newSell;
+        saveSell(newSells);
     }
 
     public void cancelSell(int idSell) {
@@ -57,19 +58,19 @@ public class SellService {
                 break;
             }
         }
-        if (sellToCancel == null) {
-            System.out.println("erro na venda id: " + idSell);
+        if (sellToCancel == null || sellToCancel.getStatus().equals("Cancelada")) {
+            System.out.println("erro ou cancelamento na venda id: " + idSell);
             return;
         }
         Product[] products = productService.listProducts();
         for(Product p : products) {
             if(p.getId() == sellToCancel.getIdProduct()) {
-                p.setQuantity(p.getQuantity() - sellToCancel.getSellQuantity());
-                productService.attProduto(p);
+                p.setQuantity(p.getQuantity() + sellToCancel.getSellQuantity());
+                productService.attProduct(p);
                 break;
             }
         }
-        Sell[] newSells = new Sell[now.length - 1]; // cria lista com n-1 e da um copy em td menos no cancel 
+        Sell[] newSells = new Sell[now.length - 1]; // cria lista com n-1 e da um copy em td menos no cancel
         int idx = 0;
         for(Sell s: now) {
             if(s.getIdSell() != idSell) {

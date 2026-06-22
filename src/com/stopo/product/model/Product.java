@@ -7,18 +7,20 @@ public class Product {
     private double price;
     private int quantity;
     private String barcode;
+    private String imagepath;
 
-    public Product(int id, String name, String description, double price, int quantity, String barcode) {
+    public Product(int id, String name, String description, double price, int quantity, String barcode, String imagepath) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.price = price;
         this.quantity = quantity;
         this.barcode = barcode;
+        this.imagepath = imagepath;
     }
 
     public String toCsv() {
-        return id + ";"  + name + ";" + description + ";" + price + ";" + quantity + ";" + barcode;
+        return id + ";"  + name + ";" + description + ";" + price + ";" + quantity + ";" + barcode  + ";" + imagepath;
     }
 
     public static Product fromCsv(String csvLine) {
@@ -29,8 +31,9 @@ public class Product {
         double price = Double.parseDouble(fields[3]);
         int quantity = Integer.parseInt(fields[4]);
         String barcode = fields[5];
+        String imagepath = fields[6];
 
-        return new Product(id, name, description, price, quantity, barcode);
+        return new Product(id, name, description, price, quantity, barcode, imagepath);
     }
 
     public int getId() {return id;}
@@ -44,4 +47,6 @@ public class Product {
     public int getQuantity() {return quantity;}
     public void setQuantity(int quantity) {this.quantity = quantity;}
     public String getBarcode() {return barcode;}
+    public String getImagepath() {return imagepath;}
+    public void setImagepath(String imagepath) {this.imagepath = imagepath;}
 }

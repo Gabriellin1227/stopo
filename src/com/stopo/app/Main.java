@@ -1,22 +1,15 @@
 package com.stopo.app;
-
-import com.stopo.product.controller.ProductController;
-import com.stopo.product.view.ProductView;
+import javax.swing.SwingUtilities;
+import com.stopo.product.view.Frame.MainFrame;
 
 import javax.swing.*;
 
 public class Main {
-    public static void main(String[] args) {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+    public static void main(String[] args){
         SwingUtilities.invokeLater(() -> {
-             ProductView productView = new ProductView();
-             ProductController productController = new ProductController(productView);
-             productView.setVisible(true);
+            MainFrame frame = new MainFrame();
+            frame.setVisible(true);
         });
     }
+
 }
